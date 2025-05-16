@@ -1,0 +1,132 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+You are a research agent tasked with generating step-by-step instructions to set up the "Bazaar" e-commerce project.
+
+<project_description>
+# Bazaar
+
+## Project Requirements
+This e-commerce project will be orchestrated using Docker Compose with the following components:
+- Backend: Node.js application
+- Database: PostgreSQL
+- Database Admin: PgAdmin
+- Cache: Redis
+
+## Database
+
+- The database will store products with the following properties: id, name, description, price, category, image_url, stock_quantity
+- `init.sql` will be used to initialize the database with mock products data (used only for initial development purposes)
+
+## Backend
+The Node.js backend will expose the following endpoints:
+- `GET /health` - Health check endpoint
+- CRUD operations for products
+
+## Caching
+- Product listing will be cached in Redis
+- Cache will be invalidated when products are modified
+
+## Frontend
+- Angular application that calls the backend to display the list of products
+- Simple product listing page for now
+
+## Docker Configuration
+- Data persistence with named volumes for PostgreSQL and Redis
+- Restart policies for all services
+- Health checks for critical services
+- Resource limits where appropriate
+
+## Network Setup
+- Internal network for backend services
+- External network for frontend and API exposure
+- Proper network segmentation for security
+</project_description>
+
+Your primary goal is to provide a comprehensive guide that allows a developer to build this project from scratch. For each component and configuration aspect, you must:
+
+1.  **Prioritize Official Documentation:** When searching for information (e.g., how to containerize a Node.js app, configure PostgreSQL, set up Angular with Docker), **strongly prefer official documentation** over tutorials, blog posts, or articles to ensure up-to-date and accurate information. Cite the source of your information where appropriate.
+2.  **Provide Step-by-Step Instructions:** Break down the setup process into clear, actionable steps.
+3.  **Include Exact Code Snippets:** For every file that needs to be created or modified (e.g., `Dockerfile`, `docker-compose.yml` sections, `init.sql`, basic application code), provide the complete and exact code.
+4.  **Specify File Paths:** Clearly state where each new file should be created or which existing file should be modified (relative to the project root).
+5.  **Cover All Components:** Address every component and requirement mentioned in `bazaar-project.md`, including:
+    *   Project directory structure (e.g., `backend/`, `frontend/`, `database/init/`).
+    *   Docker Compose setup (`docker-compose.yml`).
+    *   Backend (Node.js):
+        *   `Dockerfile` for Node.js.
+        *   Basic application structure (e.g., `backend/src/index.js`, `backend/package.json`).
+        *   `GET /health` endpoint.
+        *   Placeholder for CRUD operations for products (conceptual, no need for full implementation, but structure should allow it).
+        *   Connection to PostgreSQL and Redis (show how to access environment variables for connection strings).
+    *   Database (PostgreSQL):
+        *   Service definition in `docker-compose.yml`.
+        *   `init.sql` for table creation (`products` table with fields: id, name, description, price, category, image_url, stock_quantity) and mock data insertion. This script should be placed in `database/init/init.sql` (as per the existing project structure if any, otherwise suggest this path) and mounted to `/docker-entrypoint-initdb.d/init.sql` in the PostgreSQL container.
+        *   Data persistence using a named volume (e.g., `postgres_data`).
+    *   Database Admin (PgAdmin):
+        *   Service definition in `docker-compose.yml`.
+        *   Configuration (e.g., environment variables for default user/password, and how to connect to the PostgreSQL service).
+    *   Cache (Redis):
+        *   Service definition in `docker-compose.yml`.
+        *   Data persistence using a named volume (e.g., `redis_data`).
+    *   Frontend (Angular):
+        *   `Dockerfile` for an Angular development setup (e.g., using `ng serve`).
+        *   Basic Angular application structure (e.g., `frontend/src/app/app.component.ts`, `frontend/src/app/product.service.ts`).
+        *   Service to call backend product listing.
+        *   Simple product listing page component.
+        *   Service definition in `docker-compose.yml`.
+    *   Docker Configuration Details:
+        *   Complete `docker-compose.yml` orchestrating all services.
+        *   Named volumes for PostgreSQL (`postgres_data`) and Redis (`redis_data`).
+        *   Restart policies (e.g., `unless-stopped` or `always`).
+        *   Health checks for critical services (PostgreSQL, Backend).
+        *   Resource limits (provide examples or explain where they might be useful, e.g., memory/CPU for services).
+    *   Network Setup:
+        *   Define at least two networks in `docker-compose.yml`: an internal network (e.g., `bazaar_internal_net`) for backend services (Postgres, Redis, Backend) and an external/frontend network (e.g., `bazaar_frontend_net`) for services exposed externally (Frontend, potentially Backend if accessed directly).
+        *   Assign services to appropriate networks.
+        *   Explain the network segmentation strategy for security.
+    *   Environment Variables:
+        *   Create a `.env.example` file with placeholders for all necessary environment variables (e.g., database credentials, Redis host, backend port).
+        *   Instruct the user to copy `.env.example` to `.env` and fill in the values.
+        *   Show how services in `docker-compose.yml` will consume these environment variables.
+
+Your output should be a single, coherent markdown document that a developer can follow from top to bottom to get the project running. Start by suggesting the creation of the main project directory (`bazaar/`) and subdirectories as implied by the file paths you'll be using (e.g., `bazaar/backend/src`, `bazaar/frontend/src`, `bazaar/database/init`).
+
+**Example Structure for a Component (e.g., Backend):**
+
+### 1. Backend Setup (Node.js)
+
+#### 1.1. Directory Structure
+Create the following directory if it doesn't exist: `backend/src`
+
+#### 1.2. `backend/package.json`
+This file describes your Node.js project and its dependencies.
+```json
+// ... content of package.json ...
+```
+Instruct the user to run `npm install` or `yarn install` in the `backend` directory after creating this file.
+
+#### 1.3. `backend/src/index.js`
+This is the main entry point for your backend application.
+```javascript
+// ... content of index.js ...
+```
+
+#### 1.4. `backend/Dockerfile`
+This file defines how to build the Docker image for the backend.
+```dockerfile
+# ... content of Dockerfile ...
+```
+
+#### 1.5. Docker Compose Configuration (Backend Service)
+Add the following service definition to your `docker-compose.yml` file (this file will be created at the project root):
+```yaml
+# ... backend service definition ...
+```
+
+Remember to be thorough and precise. The goal is to minimize ambiguity and enable the developer to set up the project smoothly.
+Ensure all paths are relative to the `bazaar` project root.
+The project description mentions `database/migrations/` and `postgres/init/`. The PostgreSQL `init.sql` should likely go into `postgres/init/init.sql` and be mounted from there. Please ensure consistency.
+The `bazaar-project.md` also mentions `secrets/` directory.
+Make sure the generated `docker-compose.yml` is complete and functional, referencing the `.env` file for sensitive data.

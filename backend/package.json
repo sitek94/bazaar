@@ -1,0 +1,20 @@
+{
+  "name": "bazaar-backend",
+  "version": "1.0.0",
+  "description": "Backend for Bazaar E-commerce",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0",
+    "pg": "^8.16.0",
+    "redis": "^5.0.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.1",
+    "@types/node": "^22.15.18",
+    "@types/pg": "^8.15.2",
+    "@types/redis": "^4.0.11"
+  }
+}
