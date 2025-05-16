@@ -1,8 +1,8 @@
 services:
   # --- Database Service (PostgreSQL) ---
   postgres:
-    image: postgres:15-alpine # Specific and lean image version [11]
-    container_name: bazaar_db
+    image: postgres:17.5-alpine
+    container_name: bazaar_postgres
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -24,7 +24,7 @@ services:
 
   # --- Database Admin Service (PgAdmin) ---
   pgadmin:
-    image: dpage/pgadmin4:latest # Official PgAdmin image [12]
+    image: dpage/pgadmin4:9.3
     container_name: bazaar_pgadmin
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
@@ -43,10 +43,10 @@ services:
     restart: unless-stopped
 
   # --- Cache Service (Redis) ---
-  cache:
-    image: redis:7-alpine # Specific and lean Redis image [28]
-    container_name: bazaar_cache
-    command: redis-server --requirepass ${REDIS_PASSWORD} # Set password [29]
+  redis:
+    image: redis:8-alpine
+    container_name: bazaar_redis
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     volumes:
       - redis_data:/data # Named volume for Redis persistence [28]
     ports:
@@ -67,57 +67,55 @@ services:
     container_name: bazaar_backend
     environment:
       NODE_ENV: production
-      PORT: 3000 # Internal port for the backend service
-      PG_HOST: postgres # Service name of PostgreSQL container
+      PORT: 3000
+      PG_HOST: postgres
       PG_USER: ${POSTGRES_USER}
       PG_PASSWORD: ${POSTGRES_PASSWORD}
       PG_DATABASE: ${POSTGRES_DB}
-      PG_PORT: 5432 # Internal PostgreSQL port
-      REDIS_HOST: cache # Service name of Redis container
-      REDIS_PORT: 6379 # Internal Redis port
+      PG_PORT: 5432
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD}
     ports:
-      - '${BACKEND_PORT:-3000}:3000' # Map host port to backend's internal port
+      - '${BACKEND_PORT:-3000}:3000'
     networks:
       - bazaar_internal_network # To connect to DB and Cache
       - bazaar_external_network # To be accessible from frontend/host
     depends_on:
       postgres:
         condition: service_healthy
-      cache:
+      redis:
         condition: service_healthy
     restart: unless-stopped
-    healthcheck: # Health check for backend API
+    healthcheck:
       test: ['CMD-SHELL', 'curl -f http://localhost:3000/health || exit 1']
       interval: 15s
       timeout: 5s
       retries: 3
       start_period: 30s
 
-  # --- Frontend Service (Angular UI served by Nginx) ---
+  # --- Frontend Service (Vite+React served by Nginx) ---
   frontend:
     build: ./frontend
     container_name: bazaar_frontend
     ports:
-      - '${FRONTEND_PORT:-8080}:80' # Map host port to Nginx's internal port
+      - '${FRONTEND_PORT:-8080}:80'
     networks:
       - bazaar_external_network
-    depends_on: # Optional, but good for ensuring backend might be ready
+    depends_on:
       - backend
     restart: unless-stopped
 
 # --- Top-Level Named Volumes ---
-# Define named volumes for data persistence [22, 23]
 volumes:
   postgres_data:
-    driver: local # Default driver
+    driver: local
   pgadmin_data:
     driver: local
   redis_data:
     driver: local
 
 # --- Top-Level Networks ---
-# Define custom networks for segmentation and security [22, 30]
 networks:
   bazaar_internal_network: # For communication between backend, db, and cache
     driver: bridge
