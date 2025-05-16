@@ -1,10 +1,10 @@
-"use client"
+'use client'
 
-import { Slider } from "@/components/ui/slider"
-import { Label } from "@/components/ui/label"
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import {Slider} from '@/components/ui/slider'
+import {Label} from '@/components/ui/label'
+import {RadioGroup, RadioGroupItem} from '@/components/ui/radio-group'
+import {Button} from '@/components/ui/button'
+import {Card, CardContent, CardHeader, CardTitle} from '@/components/ui/card'
 
 interface ProductFiltersProps {
   categories: string[]
@@ -26,7 +26,7 @@ export default function ProductFilters({
   }
 
   const resetFilters = () => {
-    setCategoryFilter("")
+    setCategoryFilter('')
     setPriceRange([0, 1000])
   }
 
@@ -40,13 +40,16 @@ export default function ProductFilters({
           <div className="space-y-6">
             <div>
               <h3 className="font-medium mb-4">Category</h3>
-              <RadioGroup value={categoryFilter} onValueChange={setCategoryFilter}>
+              <RadioGroup
+                value={categoryFilter}
+                onValueChange={setCategoryFilter}
+              >
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="" id="all" />
                     <Label htmlFor="all">All Categories</Label>
                   </div>
-                  {categories.map((category) => (
+                  {categories.map(category => (
                     <div key={category} className="flex items-center space-x-2">
                       <RadioGroupItem value={category} id={category} />
                       <Label htmlFor={category}>{category}</Label>

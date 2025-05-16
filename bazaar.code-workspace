@@ -1,15 +1,15 @@
 {
   "folders": [
     {
-      "name": "Bazaar",
+      "name": "bazaar",
       "path": ".",
     },
     {
-      "name": "Frontend",
+      "name": "frontend",
       "path": "./frontend"
     },
     {
-      "name": "Backend",
+      "name": "backend",
       "path": "./backend"
     }
   ]

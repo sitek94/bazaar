@@ -1,33 +1,38 @@
-# Stage 1: Build stage
-FROM node:22-alpine AS builder
+# Stage 0: Base image - using user's pinned version
+FROM oven/bun:1.2.13 AS base
 WORKDIR /usr/src/app
 
-# Copy package.json and install dependencies
-# Using npm ci for reproducible builds, and --omit=dev to exclude devDependencies
-COPY package*.json ./
-RUN npm ci --omit=dev
+# Stage 1: Install production dependencies into a temporary directory
+# This leverages Docker cache for dependencies and keeps the final image clean.
+FROM base AS install
+WORKDIR /temp/prod
+COPY package.json bun.lock ./
+RUN bun install --frozen-lockfile --production
 
-# Copy the rest of the application code
+# Stage 2: Application source builder
+# This stage will hold the application source code.
+FROM base AS app-source-builder
+# WORKDIR is /usr/src/app (inherited from base)
 COPY . .
 
-# Add any build steps here if necessary (e.g., TypeScript compilation)
-
-# Stage 2: Production stage
-FROM node:22-alpine
+# Stage 3: Final release image - using user's pinned alpine version
+FROM oven/bun:1.2.13-alpine AS release
 WORKDIR /usr/src/app
 
-# Create a new non-root user
-RUN addgroup -S app_group 
-RUN adduser -S app_user -G app_group
+# Create non-root user and group (user's naming)
+RUN addgroup -S app_group && adduser -S app_user -G app_group
 
-# Copy installed dependencies and application code from the builder stage
-COPY --from=builder /usr/src/app/node_modules ./node_modules
-COPY --from=builder /usr/src/app/. ./
+# Copy production dependencies from the 'install' stage
+COPY --from=install /temp/prod/node_modules ./node_modules
+
+# Copy application files from the 'app-source-builder' stage.
+# This copies server.js, package.json, bun.lockb, and any other project files.
+COPY --from=app-source-builder /usr/src/app/. ./
 
 # Ensure the app_user owns the application files
 RUN chown -R app_user:app_group /usr/src/app
 
-# Switch to the non-root user
+# Switch to the non-root user (user's naming)
 USER app_user
 
 # Set environment variables for production
@@ -37,5 +42,4 @@ ENV PORT=3000
 # Expose the port the app runs on
 EXPOSE ${PORT}
 
-# Define the command to run the application
-CMD ["node", "server.js"]
+CMD ["bun", "src/server.ts"]
