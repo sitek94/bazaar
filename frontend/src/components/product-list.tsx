@@ -1,42 +1,21 @@
-'use client'
-
-import {useState, useEffect} from 'react'
+import {useState} from 'react'
 import type {Product} from '@/lib/types'
 import ProductCard from '@/components/product-card'
 import ProductFilters from '@/components/product-filters'
 
 interface ProductListProps {
-  initialProducts: Product[]
+  products: Product[]
 }
 
-export default function ProductList({initialProducts}: ProductListProps) {
-  const [products, setProducts] = useState<Product[]>(initialProducts)
-  const [filteredProducts, setFilteredProducts] =
-    useState<Product[]>(initialProducts)
+export default function ProductList({products}: ProductListProps) {
   const [categoryFilter, setCategoryFilter] = useState<string>('')
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000])
 
-  // Get unique categories from products
   const categories = Array.from(
     new Set(products.map(product => product.category)),
-  ).filter((c): c is string => !!c)
+  ).filter(Boolean)
 
-  useEffect(() => {
-    let result = [...products]
-
-    // Apply category filter
-    if (categoryFilter) {
-      result = result.filter(product => product.category === categoryFilter)
-    }
-
-    // Apply price filter
-    result = result.filter(
-      product =>
-        product.price >= priceRange[0] && product.price <= priceRange[1],
-    )
-
-    setFilteredProducts(result)
-  }, [products, categoryFilter, priceRange])
+  const filteredProducts = filterProducts(products, categoryFilter, priceRange)
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
@@ -74,4 +53,26 @@ export default function ProductList({initialProducts}: ProductListProps) {
       </div>
     </div>
   )
+}
+
+function filterProducts(
+  products: Product[],
+  categoryFilter: string,
+  [minPrice, maxPrice]: [number, number],
+) {
+  let result = [...products]
+
+  if (categoryFilter) {
+    result = result.filter(product => product.category === categoryFilter)
+  }
+
+  if (minPrice > 0) {
+    result = result.filter(product => product.price >= minPrice)
+  }
+
+  if (maxPrice < 1000) {
+    result = result.filter(product => product.price <= maxPrice)
+  }
+
+  return result
 }

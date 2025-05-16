@@ -1,10 +1,10 @@
 import {createFileRoute} from '@tanstack/react-router'
-import {getProducts} from '@/lib/data'
+import {fetchProducts} from '@/lib/data'
 import ProductList from '@/components/product-list'
 
 export const Route = createFileRoute('/')({
   component: App,
-  loader: getProducts,
+  loader: fetchProducts,
 })
 
 function App() {
@@ -19,7 +19,7 @@ function App() {
         </p>
       </header>
 
-      <ProductList initialProducts={products} />
+      <ProductList products={products} />
     </div>
   )
 }

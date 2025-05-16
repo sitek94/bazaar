@@ -1,5 +1,14 @@
 import type {Product} from './types'
 
+export async function fetchProducts(): Promise<Product[]> {
+  const response = await fetch('http://localhost:3000/products')
+  if (!response.ok) {
+    throw new Error('Failed to fetch products')
+  }
+  const data = await response.json()
+  return data as Product[]
+}
+
 export async function getProducts(): Promise<Product[]> {
   return [
     {
