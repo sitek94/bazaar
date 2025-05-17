@@ -6,11 +6,11 @@ types.setTypeParser(types.builtins.NUMERIC, (val: string) => parseFloat(val))
 
 // PostgreSQL Client Pool Setup
 const pgPool = new Pool({
-  host: env.PG_HOST,
-  user: env.PG_USER,
-  password: env.PG_PASSWORD,
-  database: env.PG_DATABASE,
-  port: env.PG_PORT,
+  host: env.POSTGRES_HOST,
+  user: env.POSTGRES_USER,
+  password: env.POSTGRES_PASSWORD,
+  database: env.POSTGRES_DB,
+  port: env.POSTGRES_PORT,
 })
 
 pgPool.on('connect', () =>

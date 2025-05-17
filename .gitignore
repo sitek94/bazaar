@@ -4,24 +4,6 @@
 .env.*
 !/.env.example
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-
-# Node.js / Backend
-backend/node_modules/
-backend/dist/
-backend/build/
-backend/coverage/
-
-# Frontend (Angular specific - some might be handled by Angular's own.gitignore)
-frontend/bazaar-frontend/node_modules/
-frontend/bazaar-frontend/dist/
-frontend/bazaar-frontend/coverage/
-frontend/bazaar-frontend/.angular/
-
-# Docker
-docker-compose.override.yml
 
 **/node_modules
 **/dist
@@ -29,4 +11,6 @@ docker-compose.override.yml
 **/coverage
 **/logs
 **/temp
-**/.angular
+
+# Docker
+docker-compose.override.yml

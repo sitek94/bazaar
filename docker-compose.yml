@@ -1,26 +1,23 @@
 services:
+  # --- Reverse Proxy (Nginx) ---
   reverse_proxy:
     image: nginx:1.28.0-alpine
     container_name: bazaar_reverse_proxy
+    depends_on:
+      - backend
+      - frontend
     ports:
-      - '80:80'
-      # - '443:443'
+      - 80:80
+      # - '443:443' # For now HTTPS is out of scope
     volumes:
       - ./reverse_proxy/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./reverse_proxy/conf.d:/etc/nginx/conf.d:ro
     networks:
       - bazaar_external_network
       - bazaar_internal_network
-    depends_on:
-      - backend
-      - frontend
     restart: unless-stopped
     healthcheck:
-      test:
-        [
-          'CMD-SHELL',
-          'wget --quiet --tries=1 --spider http://localhost/ || exit 1',
-        ]
+      test: ['CMD-SHELL', 'wget --quiet --tries=1 --spider http://localhost/ || exit 1']
       interval: 30s
       timeout: 3s
       retries: 3
@@ -29,15 +26,16 @@ services:
   postgres:
     image: postgres:17.5-alpine
     container_name: bazaar_postgres
+    ports:
+      - ${POSTGRES_PORT:-5432}:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init:/docker-entrypoint-initdb.d
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_DB: ${POSTGRES_DB}
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./postgres/init:/docker-entrypoint-initdb.d
-    ports:
-      - '${DB_PORT:-5432}:5432'
+      POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
     networks:
       - bazaar_internal_network
     restart: unless-stopped
@@ -54,20 +52,20 @@ services:
   pgadmin:
     image: dpage/pgadmin4:9.3
     container_name: bazaar_pgadmin
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - ${PGADMIN_PORT:-5050}:80
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
     environment:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD_FILE: /run/secrets/pgadmin_password
       PGADMIN_LISTEN_PORT: 80
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
-    ports:
-      - '${PGADMIN_PORT:-5050}:80'
     networks:
       - bazaar_internal_network
       - bazaar_external_network
-    depends_on:
-      postgres:
-        condition: service_healthy
     restart: unless-stopped
     secrets:
       - pgadmin_password
@@ -76,18 +74,17 @@ services:
   redis:
     image: redis:8-alpine
     container_name: bazaar_redis
-    entrypoint: /usr/local/bin/entrypoint-redis.sh
+    ports:
+      - ${REDIS_PORT:-6379}:6379
     volumes:
       - redis_data:/data
       - ./redis/entrypoint-redis.sh:/usr/local/bin/entrypoint-redis.sh:ro
-    ports:
-      - '${REDIS_PORT:-6379}:6379'
+    entrypoint: /usr/local/bin/entrypoint-redis.sh
     networks:
       - bazaar_internal_network
     restart: unless-stopped
     healthcheck:
-      test:
-        ['CMD-SHELL', 'redis-cli -a $(cat /run/secrets/redis_password) ping']
+      test: ['CMD-SHELL', 'redis-cli -a $(cat /run/secrets/redis_password) ping']
       interval: 10s
       timeout: 5s
       retries: 5
@@ -96,18 +93,23 @@ services:
       - redis_password
       - redis_user
 
-  # --- Backend Service (Node.js API) ---
+  # --- Backend Service (Hono) ---
   backend:
     build: ./backend
     container_name: bazaar_backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     environment:
       NODE_ENV: production
-      PORT: 3000
-      PG_HOST: postgres
-      PG_USER: ${POSTGRES_USER}
-      PG_PASSWORD_FILE: /run/secrets/postgres_password
-      PG_DATABASE: ${POSTGRES_DB}
-      PG_PORT: 5432
+      PORT: ${BACKEND_PORT:-3000}
+      POSTGRES_HOST: ${POSTGRES_HOST:-postgres}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_USER_FILE: /run/secrets/redis_user
@@ -115,11 +117,6 @@ services:
     networks:
       - bazaar_internal_network
       - bazaar_external_network
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ['CMD-SHELL', 'curl -f http://localhost:3000/health || exit 1']
@@ -139,10 +136,10 @@ services:
       args:
         API_BASE_URL: ${API_BASE_URL}
     container_name: bazaar_frontend
-    networks:
-      - bazaar_internal_network
     depends_on:
       - backend
+    networks:
+      - bazaar_internal_network
     restart: unless-stopped
 
 # --- Top-Level Named Volumes ---
@@ -158,6 +155,7 @@ volumes:
 networks:
   bazaar_internal_network:
     driver: bridge
+    # internal: true # Keep it disabled for now, during development
   bazaar_external_network:
     driver: bridge
 
