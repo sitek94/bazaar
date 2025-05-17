@@ -5,7 +5,7 @@ import {env} from './env'
 types.setTypeParser(types.builtins.NUMERIC, (val: string) => parseFloat(val))
 
 // PostgreSQL Client Pool Setup
-const pgPool = new Pool({
+const pool = new Pool({
   host: env.POSTGRES_HOST,
   user: env.POSTGRES_USER,
   password: env.POSTGRES_PASSWORD,
@@ -13,10 +13,10 @@ const pgPool = new Pool({
   port: env.POSTGRES_PORT,
 })
 
-pgPool.on('connect', () =>
+pool.on('connect', () =>
   console.log('Successfully connected to PostgreSQL database.'),
 )
-pgPool.on('error', err =>
+pool.on('error', err =>
   console.error('PostgreSQL client pool error:', err.stack),
 )
 
@@ -33,12 +33,12 @@ export const ProductSchema = z.object({
 type Product = z.infer<typeof ProductSchema>
 
 export async function getProducts() {
-  const result = await pgPool.query('SELECT * FROM products ORDER BY id ASC')
+  const result = await pool.query('SELECT * FROM products ORDER BY id ASC')
   return result.rows
 }
 
 export async function getProductById(id: Product['id']) {
-  const result = await pgPool.query('SELECT * FROM products WHERE id = $1', [
+  const result = await pool.query('SELECT * FROM products WHERE id = $1', [
     id,
   ])
   return result.rows[0]
@@ -46,7 +46,7 @@ export async function getProductById(id: Product['id']) {
 
 export async function createProduct(payload: Omit<Product, 'id'>) {
   const product = ProductSchema.omit({id: true}).parse(payload)
-  const result = await pgPool.query(
+  const result = await pool.query(
     'INSERT INTO products (name, description, price, category, image_url, stock_quantity) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
     [
       product.name,
@@ -81,12 +81,12 @@ export async function updateProduct(
     RETURNING *
   `
 
-  const updatedProduct = await pgPool.query(query, [...values, id])
+  const updatedProduct = await pool.query(query, [...values, id])
 
   return updatedProduct.rows[0]
 }
 
 export async function deleteProduct(id: Product['id']) {
-  const result = await pgPool.query('DELETE FROM products WHERE id = $1', [id])
+  const result = await pool.query('DELETE FROM products WHERE id = $1', [id])
   return result.rowCount
 }

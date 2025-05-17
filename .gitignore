@@ -14,3 +14,7 @@
 
 # Docker
 docker-compose.override.yml
+
+# Secrets
+secrets/*.txt
+!secrets/*.example.txt
