@@ -1,0 +1,21 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+I'm an experienced frontend developer expanding my skills into DevOps and backend development. I'm learning how to set up and manage services using containers and orchestration tools.
+
+This project helps me learn how to connect different services using Docker Compose. I want to create a solid example that follows good practices for container setup, networking, and basic security.
+
+The main goals are:
+- Set up multiple services that work together
+- Learn proper Docker configuration
+- Follow production-like best practices (without extreme measures)
+- Create a well-organized project structure
+
+I want feedback on my Docker setup, container orchestration, security settings, and any other best practices I should follow. While this is for learning purposes, I want to implement a production-quality setup that would be suitable for real-world applications.
+
+Notes on Best Practices:
+- We want to follow solid, production-like best practices
+- We don't need to go to extremes (e.g., using image digests instead of version pinning)
+- The focus is on creating a learning environment that closely resembles production standards
