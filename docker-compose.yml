@@ -1,36 +1,24 @@
 services:
-  # --- Reverse Proxy (Nginx) ---
+  # --- Reverse Proxy (Caddy) ---
   reverse_proxy:
-    image: nginx:1.28.0-alpine
+    image: caddy:2.10.0-alpine
     container_name: bazaar_reverse_proxy
-    depends_on:
-      - backend
-      - frontend
+    restart: unless-stopped
     ports:
       - 80:80
-      # - '443:443' # For now HTTPS is out of scope
+      - 443:443
     volumes:
-      - ./reverse_proxy/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./reverse_proxy/conf.d:/etc/nginx/conf.d:ro
+      - ./reverse_proxy/Caddyfile:/etc/caddy/Caddyfile
+      - ./reverse_proxy/data:/data # Persistent Caddy data including certificates
+      - caddy_config:/config
     networks:
       - bazaar_external_network
       - bazaar_internal_network
-    restart: unless-stopped
-    healthcheck:
-      test: ['CMD-SHELL', 'wget --quiet --tries=1 --spider http://localhost/ || exit 1']
-      interval: 30s
-      timeout: 3s
-      retries: 3
-    mem_limit: 128M
-    cpus: '0.5'
-    pids_limit: 100
 
   # --- Database Service (PostgreSQL) ---
   postgres:
     image: postgres:17.5-alpine
     container_name: bazaar_postgres
-    ports:
-      - ${POSTGRES_PORT:-5432}:5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./postgres/init:/docker-entrypoint-initdb.d
@@ -69,6 +57,8 @@ services:
       PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
       PGADMIN_DEFAULT_PASSWORD_FILE: /run/secrets/pgadmin_password
       PGADMIN_LISTEN_PORT: 80
+    expose:
+      - 80
     networks:
       - bazaar_internal_network
       - bazaar_external_network
@@ -83,8 +73,6 @@ services:
   redis:
     image: redis:8-alpine
     container_name: bazaar_redis
-    ports:
-      - ${REDIS_PORT:-6379}:6379
     volumes:
       - redis_data:/data
       - ./redis/entrypoint-redis.sh:/usr/local/bin/entrypoint-redis.sh:ro
@@ -126,9 +114,10 @@ services:
       REDIS_PORT: 6379
       REDIS_USER_FILE: /run/secrets/redis_user
       REDIS_PASSWORD_FILE: /run/secrets/redis_password
+    expose:
+      - 3000
     networks:
       - bazaar_internal_network
-      - bazaar_external_network
     restart: unless-stopped
     healthcheck:
       test: ['CMD-SHELL', 'wget --spider -q http://localhost:3000/health || exit 1']
@@ -149,10 +138,12 @@ services:
     build:
       context: ./frontend
       args:
-        API_BASE_URL: ${API_BASE_URL}
+        API_HOST: ${API_HOST}
     container_name: bazaar_frontend
     depends_on:
       - backend
+    expose:
+      - 80
     networks:
       - bazaar_internal_network
     restart: unless-stopped
@@ -167,6 +158,8 @@ services:
 
 # --- Top-Level Named Volumes ---
 volumes:
+  caddy_config:
+    driver: local
   postgres_data:
     driver: local
   pgadmin_data:
@@ -178,7 +171,7 @@ volumes:
 networks:
   bazaar_internal_network:
     driver: bridge
-    # internal: true # Keep it disabled for now, during development
+    internal: true
   bazaar_external_network:
     driver: bridge
 

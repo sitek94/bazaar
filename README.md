@@ -36,6 +36,8 @@ chmod 600 secrets/*.txt
 docker compose up -d
 ```
 
+**Note:** After running this command for the first time, you need to trust the generated certificate to access the services via HTTPS, see [Local development with HTTPS](#local-development-with-https) section for more details.
+
 4. **Verify the services are running:**
 
 ```bash
@@ -74,17 +76,28 @@ docker compose stop
 
 | Service | Description | Access |
 | --- | --- | --- |
-| `reverse_proxy` | Nginx reverse proxy for all HTTP traffic | [http://localhost](http://localhost) |
-| `frontend` | Vite+React application (via Nginx proxy) | [http://localhost](http://localhost) |
-| `backend` | Hono backend API | [http://api.localhost](http://api.localhost) |
+| `reverse_proxy` | Caddy reverse proxy for all HTTP traffic | [https://localhost](https://localhost) |
+| `frontend` | Vite+React application (via Nginx proxy) | [https://localhost](https://localhost) |
+| `backend` | Hono backend API | [https://api.localhost](https://api.localhost) |
 | `postgres` | PostgreSQL database | 5432 (no web UI) |
-| `pgadmin` | PgAdmin interface for managing PostgreSQL | [http://pgadmin.localhost](http://pgadmin.localhost) |
+| `pgadmin` | PgAdmin interface for managing PostgreSQL | [https://pgadmin.localhost](https://pgadmin.localhost) |
 | `redis` | Redis cache | 6379 (no web UI) |
 
-### Localhost Subdomains Setup
+### Local development with HTTPS
 
-To access services via custom subdomains (e.g., `api.localhost`, `pgadmin.localhost`), add these lines to your `/etc/hosts` file:
+After running `docker compose up -d` for the first time, in `reverse_proxy` directory you will find a `root.crt` file. You need to trust it to access services via HTTPS.
+
+Run the following command on MacOS to trust the certificate (or see [Caddy docs](https://caddyserver.com/docs/running#local-https-with-docker) for other platforms):
+
+```sh
+sudo security add-trusted-cert -d -r trustRoot \
+   -k /Library/Keychains/System.keychain ./reverse_proxy/data/caddy/pki/authorities/local/root.crt 
+```
+
+Additionally, add these lines to your `/etc/hosts` file to access services via custom subdomains (e.g., `api.localhost`, `pgadmin.localhost`):
 
 ```
 127.0.0.1   localhost api.localhost pgadmin.localhost
 ```
+
+Now you can access all the services via HTTPS, see [Services](#services) section for more details.

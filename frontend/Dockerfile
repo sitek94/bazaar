@@ -1,12 +1,12 @@
 # Stage 1: Build stage
-FROM oven/bun:1.2.13 AS builder
+FROM oven/bun:1.2.13-alpine AS builder
 WORKDIR /app
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
 COPY . .
 
-ARG API_BASE_URL 
-ENV VITE_API_BASE_URL=${API_BASE_URL}
+ARG API_HOST 
+ENV VITE_API_HOST=${API_HOST}
 
 RUN bun run build
 

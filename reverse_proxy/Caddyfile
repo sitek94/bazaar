@@ -1,0 +1,17 @@
+# Frontend
+localhost {
+	reverse_proxy frontend:80
+	tls internal
+}
+
+# Backend (API)
+api.localhost {
+	reverse_proxy backend:3000
+	tls internal
+}
+
+# PgAdmin
+pgadmin.localhost {
+	reverse_proxy pgadmin:80
+	tls internal
+}

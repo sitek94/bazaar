@@ -18,3 +18,6 @@ docker-compose.override.yml
 # Secrets
 secrets/*.txt
 !secrets/*.example.txt
+
+# Caddy
+reverse_proxy/data

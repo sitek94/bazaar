@@ -1,7 +1,8 @@
 import type {Product} from './types'
 
 export async function fetchProducts(): Promise<Product[]> {
-  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/products`)
+  const apiUrl = `${window.location.protocol}//${import.meta.env.VITE_API_HOST}/products`
+  const response = await fetch(apiUrl)
   if (!response.ok) {
     throw new Error('Failed to fetch products')
   }

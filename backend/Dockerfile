@@ -1,5 +1,5 @@
 # Stage 0: Base image - using user's pinned version
-FROM oven/bun:1.2.13 AS base
+FROM oven/bun:1.2.13-alpine AS base
 WORKDIR /usr/src/app
 
 # Stage 1: Install production dependencies into a temporary directory
