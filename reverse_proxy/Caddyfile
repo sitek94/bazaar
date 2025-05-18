@@ -1,5 +1,5 @@
 # Frontend
-localhost {
+localhost, bazaar.localhost {
 	reverse_proxy frontend:80
 	tls internal
 }
