@@ -1,6 +1,8 @@
-# Bazaar
+# Bazaar 🧞‍♂️ 
 
-This project helps me learn how to orchestrate multiple services using Docker Compose. I want to create a solid example that follows good practices for container setup, networking, and basic security.
+This project helps me learn how to orchestrate multiple services using Docker Compose. The goal is to create a solid example that follows good practices for container setup, networking, and basic security.
+
+For a detailed look at the principles and practices applied, please see the [Best Practices documentation](./docs/best-practices.md).
 
 ## Prerequisites
 
